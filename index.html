@@ -7,6 +7,7 @@
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
   body { font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+
   /* ---------- CONTROL MODE ---------- */
   .control { min-height: 100vh; background: #f1f5f9; color: #0f172a; padding: 16px; }
   .wrap { max-width: 640px; margin: 0 auto; }
@@ -45,6 +46,7 @@
   .status { font-size: 12px; padding: 4px 10px; border-radius: 999px; }
   .status.ok { background: #dcfce7; color: #15803d; }
   .status.err { background: #fee2e2; color: #b91c1c; }
+
   /* ---------- DISPLAY (TV) MODE ---------- */
   .tv { min-height: 100vh; background: linear-gradient(to bottom, #0f172a, #1e293b); color: #fff; padding: 40px; }
   .tv-head { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 36px; }
@@ -63,17 +65,20 @@
   .tv-empty .big { font-size: 100px; margin-bottom: 16px; }
   .tv-empty .msg { font-size: 56px; font-weight: 800; color: #34d399; }
   .tv-empty .sub { font-size: 26px; color: #94a3b8; margin-top: 8px; }
+
   .gate { min-height: 100vh; background: #0f172a; display: flex; align-items: center; justify-content: center; padding: 24px; }
   .gate-box { background: #1e293b; border-radius: 18px; padding: 32px; width: 100%; max-width: 340px; color: #fff; text-align: center; }
   .gate-box h2 { margin: 12px 0 18px; }
   .gate-box input { width: 100%; background: #334155; border: none; border-radius: 10px; padding: 12px; text-align: center; font-size: 24px; letter-spacing: 6px; color: #fff; outline: none; margin-bottom: 16px; }
   .gate-box button { width: 100%; background: #059669; color: #fff; border: none; border-radius: 10px; padding: 12px; font-weight: 700; cursor: pointer; }
   .gate-box .alt { background: none; color: #94a3b8; margin-top: 12px; font-weight: 500; }
+
   .config-warn { background: #fef3c7; color: #92400e; padding: 16px; border-radius: 12px; margin: 16px; font-size: 14px; line-height: 1.6; }
 </style>
 </head>
 <body>
 <div id="app"></div>
+
 <script type="module">
 // ============================================================
 //  STEP 1: PASTE YOUR FIREBASE CONFIG BELOW
@@ -89,10 +94,13 @@ const firebaseConfig = {
   appId: "1:826464868249:web:aa254b1e360c74d3eda508",
 };
 // ============================================================
+
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import { getDatabase, ref, onValue, set, update, remove, push }
   from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+
 const appEl = document.getElementById("app");
+
 // If config not filled in, show a friendly warning
 if (firebaseConfig.apiKey === "PASTE_HERE") {
   appEl.innerHTML = `<div class="config-warn">
@@ -103,15 +111,18 @@ if (firebaseConfig.apiKey === "PASTE_HERE") {
   </div>`;
   throw new Error("Firebase config not set");
 }
+
 const fbApp = initializeApp(firebaseConfig);
 const db = getDatabase(fbApp);
 const dataRef = ref(db, "tracker");
+
 // ---------- local state ----------
 let state = { students: {}, increment: 5, pin: "" };
 let mode = location.hash === "#tv" ? "display" : "control";
 let unlocked = true;
 let pulseId = null;
 let connected = true;
+
 // ---------- live sync ----------
 onValue(dataRef, (snap) => {
   const val = snap.val() || {};
@@ -120,12 +131,14 @@ onValue(dataRef, (snap) => {
   if (mode === "control" && state.pin && unlocked === null) unlocked = false;
   render();
 }, (err) => { connected = false; console.error(err); render(); });
+
 // On first load, if a PIN exists and we're in control mode, lock it
 function checkLock() {
   if (mode === "control" && state.pin && unlocked === true && !sessionStorage.getItem("unlocked")) {
     // only lock once per load
   }
 }
+
 // ---------- helpers ----------
 function fmt(m) {
   if (m < 60) return m + " min";
@@ -137,6 +150,7 @@ function sortedStudents() {
     .map(([id, s]) => ({ id, ...s }))
     .sort((a, b) => (b.minutes - a.minutes) || a.name.localeCompare(b.name));
 }
+
 // ---------- writes ----------
 function addStudent(name) {
   const n = name.trim();
@@ -159,13 +173,16 @@ function resetAll() {
 }
 function setIncrement(v) { set(ref(db, "tracker/increment"), Math.max(1, v)); }
 function setPin(v) { set(ref(db, "tracker/pin"), v.replace(/\D/g, "").slice(0, 6)); }
+
 let showSettings = false;
+
 // ---------- render ----------
 function render() {
   if (mode === "display") return renderTV();
   if (mode === "control" && state.pin && !unlocked) return renderGate();
   return renderControl();
 }
+
 function renderTV() {
   const withTime = sortedStudents().filter(s => s.minutes > 0);
   let rows;
@@ -176,7 +193,7 @@ function renderTV() {
       <div class="sub">Nobody's earned extra time… yet.</div>
     </div>`;
   } else {
-    rows = <div class="tv-list"> + withTime.map((s, i) => {
+    rows = `<div class="tv-list">` + withTime.map((s, i) => {
       const medal = i === 0 ? "🥇" : i === 1 ? "🥈" : i === 2 ? "🥉" : (i + 1) + ".";
       return `<div class="tv-row ${i === 0 ? "top" : ""}">
         <div class="left">
@@ -185,7 +202,7 @@ function renderTV() {
         </div>
         <span class="tv-mins">${fmt(s.minutes)}</span>
       </div>`;
-    }).join("") + </div>;
+    }).join("") + `</div>`;
   }
   appEl.innerHTML = `<div class="tv">
     <div class="tv-head">
@@ -203,6 +220,7 @@ function renderTV() {
     render();
   };
 }
+
 function renderGate() {
   appEl.innerHTML = `<div class="gate"><div class="gate-box">
     <div style="font-size:32px">🔒</div>
@@ -218,6 +236,7 @@ function renderGate() {
   document.getElementById("pinIn").addEventListener("keydown", e => { if (e.key === "Enter") tryUnlock(); });
   document.getElementById("toTv").onclick = () => { mode = "display"; location.hash = "tv"; render(); };
 }
+
 function renderControl() {
   const list = sortedStudents();
   const settings = showSettings ? `
@@ -238,8 +257,9 @@ function renderControl() {
       <p class="note">The TV and this controller share one live database. Anyone with the link sees updates instantly — no account needed. Set a PIN so students can't open the controller.<br><br>
       Tip: bookmark the TV on this address with <b>#tv</b> at the end to open it straight in display mode.</p>
     </div>` : "";
+
   const rosterHtml = list.length === 0
-    ? <div class="empty">➕ Add your students above to get started.</div>
+    ? `<div class="empty">➕ Add your students above to get started.</div>`
     : list.map(s => `
       <div class="card ${pulseId === s.id ? "pulse" : ""}">
         <button class="name-zone" data-add="${s.id}">
@@ -250,6 +270,7 @@ function renderControl() {
         <button class="ctl minus" data-sub="${s.id}">−</button>
         <button class="ctl del" data-del="${s.id}" data-mins="${s.minutes}">${s.minutes > 0 ? "↺" : "🗑"}</button>
       </div>`).join("");
+
   appEl.innerHTML = `<div class="control"><div class="wrap">
     <div class="top">
       <div>
@@ -269,18 +290,21 @@ function renderControl() {
     ${rosterHtml}
     <p class="foot">The trash icon removes a student only at 0 min — otherwise it resets them to 0.</p>
   </div></div>`;
+
   // wire events
   document.getElementById("gear").onclick = () => { showSettings = !showSettings; render(); };
   document.getElementById("toTv").onclick = () => { mode = "display"; location.hash = "tv"; render(); };
   const nameInput = document.getElementById("newName");
   document.getElementById("addBtn").onclick = () => { addStudent(nameInput.value); };
   nameInput.addEventListener("keydown", e => { if (e.key === "Enter") addStudent(nameInput.value); });
+
   if (showSettings) {
     document.getElementById("incMinus").onclick = () => setIncrement(state.increment - 1);
     document.getElementById("incPlus").onclick = () => setIncrement(state.increment + 1);
     document.getElementById("pinSet").addEventListener("change", e => setPin(e.target.value));
     document.getElementById("resetAll").onclick = () => { if (confirm("Reset everyone's minutes to 0?")) resetAll(); };
   }
+
   document.querySelectorAll("[data-add]").forEach(b =>
     b.onclick = () => changeMinutes(b.getAttribute("data-add"), state.increment));
   document.querySelectorAll("[data-sub]").forEach(b =>
@@ -292,16 +316,19 @@ function renderControl() {
       if (mins > 0) resetStudent(id); else removeStudent(id);
     });
 }
+
 function escapeHtml(str) {
   return String(str).replace(/[&<>"']/g, c =>
     ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 }
+
 // react to hash changes (e.g. TV bookmarked with #tv)
 window.addEventListener("hashchange", () => {
   mode = location.hash === "#tv" ? "display" : "control";
   if (mode === "control" && state.pin) unlocked = false;
   render();
 });
+
 // initial lock state
 if (mode === "control" && state.pin) unlocked = false;
 render();
