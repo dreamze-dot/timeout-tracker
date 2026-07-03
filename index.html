@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Time-Out Tracker</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  body { font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+
+  /* ---------- CONTROL MODE ---------- */
+  .control { min-height: 100vh; background: #f1f5f9; color: #0f172a; padding: 16px; }
+  .wrap { max-width: 640px; margin: 0 auto; }
+  .top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px; }
+  .top h1 { font-size: 22px; }
+  .top p { color: #64748b; font-size: 13px; margin-top: 2px; }
+  .btns { display: flex; gap: 8px; }
+  .icon-btn { background: #fff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 10px; cursor: pointer; display: flex; font-size: 16px; }
+  .tv-btn { background: #0f172a; color: #fff; border: none; border-radius: 12px; padding: 10px 16px; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 8px; font-size: 15px; }
+  .add-row { display: flex; gap: 8px; margin-bottom: 18px; }
+  .add-row input { flex: 1; border: 1px solid #e2e8f0; border-radius: 12px; padding: 12px 16px; font-size: 16px; outline: none; }
+  .add-row input:focus { border-color: #10b981; box-shadow: 0 0 0 2px rgba(16,185,129,.3); }
+  .add-btn { background: #059669; color: #fff; border: none; border-radius: 12px; padding: 0 18px; font-weight: 700; cursor: pointer; font-size: 20px; }
+  .card { background: #fff; border: 1px solid #e2e8f0; border-radius: 16px; padding: 10px; margin-bottom: 8px; transition: transform .15s, box-shadow .15s; display: flex; flex-direction: column; gap: 8px; }
+  .card.pulse { box-shadow: 0 0 0 2px #10b981; transform: scale(1.01); }
+  .card.nofree { border-color: #fca5a5; background: #fff5f5; }
+  .card-main { display: flex; align-items: center; gap: 10px; }
+  .name-zone { flex: 1; display: flex; justify-content: space-between; align-items: center; background: none; border: none; cursor: pointer; text-align: left; padding: 6px; }
+  .name-zone .name { font-weight: 700; font-size: 17px; }
+  .name-zone .mins { font-weight: 800; font-size: 17px; color: #cbd5e1; }
+  .name-zone .mins.has { color: #059669; }
+  .ctl { width: 44px; height: 44px; border-radius: 12px; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 18px; }
+  .ctl.plus { background: #059669; color: #fff; }
+  .ctl.minus { background: #f1f5f9; }
+  .ctl.del { background: #f1f5f9; }
+  .ctl.del:hover { background: #fee2e2; color: #e11d48; }
+  .nofree-btn { border: 2px solid #ef4444; background: #fff; color: #ef4444; border-radius: 12px; padding: 9px; font-weight: 800; cursor: pointer; font-size: 14px; letter-spacing: .3px; }
+  .nofree-btn:hover { background: #fef2f2; }
+  .nofree-btn.on { background: #ef4444; color: #fff; }
+  .empty { text-align: center; color: #94a3b8; padding: 60px 0; }
+  .panel { background: #fff; border: 1px solid #e2e8f0; border-radius: 16px; padding: 16px; margin-bottom: 18px; }
+  .panel-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; }
+  .panel-row label { font-weight: 600; font-size: 14px; }
+  .stepper { display: flex; align-items: center; gap: 8px; }
+  .stepper button { width: 32px; height: 32px; border-radius: 8px; border: none; background: #f1f5f9; font-weight: 700; cursor: pointer; font-size: 16px; }
+  .stepper span { width: 36px; text-align: center; font-weight: 700; font-size: 18px; }
+  .pin-input { background: #f1f5f9; border: none; border-radius: 8px; padding: 8px 12px; width: 110px; text-align: center; letter-spacing: 3px; outline: none; font-size: 15px; }
+  .reset-all { width: 100%; background: #fff1f2; color: #e11d48; border: none; border-radius: 12px; padding: 11px; font-weight: 700; cursor: pointer; }
+  .note { font-size: 12px; color: #94a3b8; line-height: 1.5; margin-top: 12px; }
+  .foot { text-align: center; font-size: 12px; color: #94a3b8; margin-top: 22px; }
+  .status { font-size: 12px; padding: 4px 10px; border-radius: 999px; }
+  .status.ok { background: #dcfce7; color: #15803d; }
+  .status.err { background: #fee2e2; color: #b91c1c; }
+
+  /* ---------- DISPLAY (TV) MODE ---------- */
+  .tv { min-height: 100vh; background: linear-gradient(to bottom, #0f172a, #1e293b); color: #fff; padding: 40px; }
+  .tv-head { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 36px; }
+  .tv-head h1 { font-size: 64px; font-weight: 900; letter-spacing: -1px; }
+  .tv-head p { color: #94a3b8; font-size: 26px; margin-top: 4px; }
+  .tv-corner { display: flex; flex-direction: column; align-items: flex-end; gap: 8px; }
+  .tv-link { color: #475569; font-size: 14px; text-decoration: none; background: none; border: none; cursor: pointer; }
+  .sound-btn { background: #334155; color: #cbd5e1; border: none; border-radius: 999px; padding: 6px 14px; font-size: 14px; cursor: pointer; }
+  .tv-list { max-width: 1000px; margin: 0 auto; display: flex; flex-direction: column; gap: 16px; }
+  .tv-row { display: flex; justify-content: space-between; align-items: center; border-radius: 20px; padding: 24px 32px; background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.1); transition: all .3s; }
+  .tv-row.top { background: rgba(245,158,11,.18); border: 2px solid #fbbf24; }
+  .tv-row.nofree { background: rgba(239,68,68,.2); border: 2px solid #ef4444; }
+  .tv-row .left { display: flex; align-items: center; gap: 24px; min-width: 0; }
+  .tv-row .rank { font-size: 52px; width: 70px; text-align: center; flex-shrink: 0; }
+  .tv-row .tv-name { font-size: 52px; font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .tv-row .tv-mins { font-size: 52px; font-weight: 900; color: #34d399; flex-shrink: 0; }
+  .tv-row.top .tv-mins { color: #fcd34d; }
+  .tv-row.nofree .tv-mins { color: #fca5a5; font-size: 44px; }
+  .tv-empty { text-align: center; margin-top: 100px; }
+  .tv-empty .big { font-size: 100px; margin-bottom: 16px; }
+  .tv-empty .msg { font-size: 56px; font-weight: 800; color: #34d399; }
+  .tv-empty .sub { font-size: 26px; color: #94a3b8; margin-top: 8px; }
+
+  /* ---------- BOMB ANIMATION ---------- */
+  .bomb-overlay { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; z-index: 9999; pointer-events: none; overflow: hidden; }
+  .bomb-flash { position: absolute; inset: 0; background: radial-gradient(circle, #ffffff 0%, #fca311 40%, #ef4444 100%); opacity: 0; animation: flash 0.7s ease-out 0.9s; }
+  @keyframes flash { 0% { opacity: 0; } 20% { opacity: 1; } 100% { opacity: 0; } }
+  .bomb-emoji { position: absolute; font-size: 180px; animation: fuse 1s ease-in forwards; }
+  @keyframes fuse {
+    0% { transform: scale(0) rotate(0deg); opacity: 1; }
+    55% { transform: scale(1.1) rotate(-10deg); }
+    70% { transform: scale(1) rotate(10deg); }
+    85% { transform: scale(1.15) rotate(-10deg); }
+    100% { transform: scale(1.5) rotate(0deg); opacity: 0; }
+  }
+  .bomb-boom { position: absolute; font-size: 0px; opacity: 0; animation: boom 1.3s ease-out 0.9s forwards; }
+  @keyframes boom {
+    0% { font-size: 0px; opacity: 0; }
+    15% { font-size: 420px; opacity: 1; }
+    60% { font-size: 360px; opacity: 1; }
+    100% { font-size: 340px; opacity: 0; }
+  }
+  .bomb-text { position: relative; text-align: center; opacity: 0; z-index: 2; animation: pop 2.6s ease-out 1.1s forwards; }
+  @keyframes pop {
+    0% { opacity: 0; transform: scale(0.3); }
+    12% { opacity: 1; transform: scale(1.15); }
+    22% { transform: scale(1); }
+    85% { opacity: 1; }
+    100% { opacity: 0; transform: scale(1); }
+  }
+  .bomb-label { font-size: 110px; font-weight: 900; color: #ef4444; letter-spacing: 4px; text-shadow: 0 0 40px #ef4444, 0 6px 12px rgba(0,0,0,.6); }
+  .bomb-name { font-size: 84px; font-weight: 900; color: #fff; text-shadow: 0 4px 24px rgba(0,0,0,.7); margin-top: 8px; }
+  .shake { animation: shake 0.6s cubic-bezier(.36,.07,.19,.97) 0.9s; }
+  @keyframes shake {
+    0%, 100% { transform: translate(0, 0); }
+    10% { transform: translate(-14px, 9px) rotate(-1deg); }
+    20% { transform: translate(12px, -11px) rotate(1deg); }
+    30% { transform: translate(-13px, 7px) rotate(0deg); }
+    40% { transform: translate(11px, -9px) rotate(1deg); }
+    50% { transform: translate(-9px, 8px) rotate(-1deg); }
+    60% { transform: translate(8px, -6px); }
+    70% { transform: translate(-6px, 4px); }
+    80% { transform: translate(4px, -3px); }
+    90% { transform: translate(-2px, 2px); }
+  }
+
+  /* ---------- PIN GATE ---------- */
+  .gate { min-height: 100vh; background: #0f172a; display: flex; align-items: center; justify-content: center; padding: 24px; }
+  .gate-box { background: #1e293b; border-radius: 18px; padding: 32px; width: 100%; max-width: 340px; color: #fff; text-align: center; }
+  .gate-box h2 { margin: 12px 0 18px; }
+  .gate-box input { width: 100%; background: #334155; border: none; border-radius: 10px; padding: 12px; text-align: center; font-size: 24px; letter-spacing: 6px; color: #fff; outline: none; margin-bottom: 16px; }
+  .gate-box button { width: 100%; background: #059669; color: #fff; border: none; border-radius: 10px; padding: 12px; font-weight: 700; cursor: pointer; }
+  .gate-box .alt { background: none; color: #94a3b8; margin-top: 12px; font-weight: 500; }
+
+  .config-warn { background: #fef3c7; color: #92400e; padding: 16px; border-radius: 12px; margin: 16px; font-size: 14px; line-height: 1.6; }
+</style>
+</head>
+<body>
+<div id="app"></div>
+
+<script type="module">
+// ============================================================
+//  FIREBASE CONFIG
+// ============================================================
+const firebaseConfig = {
+  apiKey: "AIzaSyDOhH1l3PqB6wVaUk-B5B6rcxc0_c4PUjQ",
+  authDomain: "timeout-tracker.firebaseapp.com",
+  databaseURL: "https://timeout-tracker-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "timeout-tracker",
+  storageBucket: "timeout-tracker.firebasestorage.app",
+  messagingSenderId: "826464868249",
+  appId: "1:826464868249:web:aa254b1e360c74d3eda508",
+};
+// ============================================================
+
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getDatabase, ref, onValue, set, update, remove, push }
+  from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+
+const appEl = document.getElementById("app");
+
+if (firebaseConfig.apiKey === "PASTE_HERE") {
+  appEl.innerHTML = `<div class="config-warn"><b>⚙️ Almost there!</b><br>
+    Paste your Firebase config into the <code>firebaseConfig</code> block near the top, then save and reload.</div>`;
+  throw new Error("Firebase config not set");
+}
+
+const fbApp = initializeApp(firebaseConfig);
+const db = getDatabase(fbApp);
+const dataRef = ref(db, "tracker");
+
+// ---------- local state ----------
+let state = { students: {}, increment: 5, pin: "", lastBomb: null };
+let mode = location.hash === "#tv" ? "display" : "control";
+let unlocked = true;
+let pulseId = null;
+let connected = true;
+let showSettings = false;
+let lastBombSeen = null;
+let initialized = false;
+
+// ---------- live sync ----------
+onValue(dataRef, (snap) => {
+  const val = snap.val() || {};
+  state = {
+    students: val.students || {},
+    increment: val.increment || 5,
+    pin: val.pin || "",
+    lastBomb: val.lastBomb || null,
+  };
+  connected = true;
+  const bombAt = state.lastBomb && state.lastBomb.at;
+  if (!initialized) {
+    lastBombSeen = bombAt || null; // don't fire on first load
+    initialized = true;
+  } else if (bombAt && bombAt !== lastBombSeen) {
+    lastBombSeen = bombAt;
+    if (mode === "display") triggerBomb(state.lastBomb.name);
+  }
+  render();
+}, (err) => { connected = false; console.error(err); render(); });
+
+// ---------- helpers ----------
+function fmt(m) {
+  if (m < 60) return m + " min";
+  const h = Math.floor(m / 60), mm = m % 60;
+  return mm === 0 ? h + "h" : h + "h " + mm + "m";
+}
+function sortedStudents() {
+  return Object.entries(state.students)
+    .map(([id, s]) => ({ id, name: s.name, minutes: s.minutes || 0, noFree: !!s.noFree }))
+    .sort((a, b) => (b.minutes - a.minutes) || a.name.localeCompare(b.name));
+}
+function escapeHtml(str) {
+  return String(str).replace(/[&<>"']/g, c =>
+    ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+}
+
+// ---------- writes ----------
+function addStudent(name) {
+  const n = name.trim();
+  if (!n) return;
+  push(ref(db, "tracker/students"), { name: n, minutes: 0, noFree: false });
+}
+function changeMinutes(id, delta) {
+  const cur = state.students[id]?.minutes || 0;
+  update(ref(db, "tracker/students/" + id), { minutes: Math.max(0, cur + delta) });
+  pulseId = id; render();
+  setTimeout(() => { pulseId = null; render(); }, 400);
+}
+function toggleNoFree(id) {
+  const nowOn = !state.students[id]?.noFree;
+  update(ref(db, "tracker/students/" + id), { noFree: nowOn });
+  if (nowOn) {
+    set(ref(db, "tracker/lastBomb"), { name: state.students[id].name, at: Date.now() });
+  }
+}
+function resetStudent(id) { update(ref(db, "tracker/students/" + id), { minutes: 0 }); }
+function removeStudent(id) { remove(ref(db, "tracker/students/" + id)); }
+function resetAll() {
+  const updates = {};
+  Object.keys(state.students).forEach(id => {
+    updates[id + "/minutes"] = 0;
+    updates[id + "/noFree"] = false;
+  });
+  update(ref(db, "tracker/students"), updates);
+}
+function setIncrement(v) { set(ref(db, "tracker/increment"), Math.max(1, v)); }
+function setPin(v) { set(ref(db, "tracker/pin"), v.replace(/\D/g, "").slice(0, 6)); }
+
+// ---------- sound (Web Audio explosion) ----------
+let audioCtx = null;
+function ensureAudio() {
+  if (!audioCtx) {
+    try { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) { return; }
+  }
+  if (audioCtx.state === "suspended") audioCtx.resume();
+}
+document.addEventListener("click", ensureAudio, { once: false });
+function playExplosion() {
+  ensureAudio();
+  if (!audioCtx) return;
+  const now = audioCtx.currentTime;
+  // noise burst
+  const size = Math.floor(audioCtx.sampleRate * 1.2);
+  const buffer = audioCtx.createBuffer(1, size, audioCtx.sampleRate);
+  const d = buffer.getChannelData(0);
+  for (let i = 0; i < size; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / size, 2);
+  const noise = audioCtx.createBufferSource(); noise.buffer = buffer;
+  const nGain = audioCtx.createGain();
+  nGain.gain.setValueAtTime(0.9, now);
+  nGain.gain.exponentialRampToValueAtTime(0.001, now + 1.2);
+  const lp = audioCtx.createBiquadFilter(); lp.type = "lowpass";
+  lp.frequency.setValueAtTime(1400, now);
+  lp.frequency.exponentialRampToValueAtTime(180, now + 1.0);
+  noise.connect(lp); lp.connect(nGain); nGain.connect(audioCtx.destination);
+  noise.start(now);
+  // low boom
+  const osc = audioCtx.createOscillator(); osc.type = "sine";
+  osc.frequency.setValueAtTime(150, now);
+  osc.frequency.exponentialRampToValueAtTime(32, now + 0.7);
+  const oGain = audioCtx.createGain();
+  oGain.gain.setValueAtTime(0.9, now);
+  oGain.gain.exponentialRampToValueAtTime(0.001, now + 0.85);
+  osc.connect(oGain); oGain.connect(audioCtx.destination);
+  osc.start(now); osc.stop(now + 0.9);
+}
+
+function triggerBomb(name) {
+  playExplosion();
+  const ov = document.createElement("div");
+  ov.className = "bomb-overlay";
+  ov.innerHTML =
+    `<div class="bomb-flash"></div>` +
+    `<div class="bomb-emoji">💣</div>` +
+    `<div class="bomb-boom">💥</div>` +
+    `<div class="bomb-text">` +
+      `<div class="bomb-label">💥 NO FREEPLAY 💥</div>` +
+      `<div class="bomb-name">${escapeHtml(name)}</div>` +
+    `</div>`;
+  document.body.appendChild(ov);
+  appEl.classList.add("shake");
+  setTimeout(() => appEl.classList.remove("shake"), 1600);
+  setTimeout(() => ov.remove(), 4200);
+}
+
+// ---------- render ----------
+function render() {
+  if (mode === "display") return renderTV();
+  if (mode === "control" && state.pin && !unlocked) return renderGate();
+  return renderControl();
+}
+
+function renderTV() {
+  const shown = sortedStudents().filter(s => s.minutes > 0 || s.noFree);
+  const noFreeList = shown.filter(s => s.noFree);
+  const timeList = shown.filter(s => !s.noFree);
+  let body;
+  if (shown.length === 0) {
+    body = `<div class="tv-empty">` +
+      `<div class="big">🤫📚</div>` +
+      `<div class="msg">Clean slate!</div>` +
+      `<div class="sub">Nobody's earned extra time… yet.</div>` +
+    `</div>`;
+  } else {
+    const noFreeRows = noFreeList.map(s =>
+      `<div class="tv-row nofree">` +
+        `<div class="left"><span class="rank">🚫</span><span class="tv-name">${escapeHtml(s.name)}</span></div>` +
+        `<span class="tv-mins">No Freeplay</span>` +
+      `</div>`).join("");
+    const timeRows = timeList.map((s, i) => {
+      const medal = i === 0 ? "🥇" : i === 1 ? "🥈" : i === 2 ? "🥉" : (i + 1) + ".";
+      return `<div class="tv-row ${i === 0 ? "top" : ""}">` +
+        `<div class="left"><span class="rank">${medal}</span><span class="tv-name">${escapeHtml(s.name)}</span></div>` +
+        `<span class="tv-mins">${fmt(s.minutes)}</span>` +
+      `</div>`;
+    }).join("");
+    body = `<div class="tv-list">${noFreeRows}${timeRows}</div>`;
+  }
+  appEl.innerHTML = `<div class="tv">` +
+    `<div class="tv-head">` +
+      `<div><h1>⏱️ Time Earned</h1><p>Silent Reading Leaderboard</p></div>` +
+      `<div class="tv-corner">` +
+        `<button class="sound-btn" id="soundBtn">🔊 Enable sound</button>` +
+        `<button class="tv-link" id="toControl">⚙ Control</button>` +
+      `</div>` +
+    `</div>${body}</div>`;
+  document.getElementById("toControl").onclick = () => {
+    location.hash = ""; mode = "control";
+    if (state.pin) unlocked = false;
+    render();
+  };
+  document.getElementById("soundBtn").onclick = (e) => {
+    ensureAudio();
+    e.target.textContent = "🔊 Sound on";
+    setTimeout(() => { e.target.style.display = "none"; }, 1200);
+  };
+}
+
+function renderGate() {
+  appEl.innerHTML = `<div class="gate"><div class="gate-box">` +
+    `<div style="font-size:32px">🔒</div><h2>Enter PIN</h2>` +
+    `<input id="pinIn" type="password" placeholder="••••" inputmode="numeric" />` +
+    `<button id="unlockBtn">Unlock</button>` +
+    `<button id="toTv" class="alt">📺 Go to TV display instead</button>` +
+  `</div></div>`;
+  const tryUnlock = () => {
+    if (document.getElementById("pinIn").value === state.pin) { unlocked = true; render(); }
+  };
+  document.getElementById("unlockBtn").onclick = tryUnlock;
+  document.getElementById("pinIn").addEventListener("keydown", e => { if (e.key === "Enter") tryUnlock(); });
+  document.getElementById("toTv").onclick = () => { mode = "display"; location.hash = "tv"; render(); };
+}
+
+function renderControl() {
+  const list = sortedStudents();
+  const settings = showSettings ?
+    `<div class="panel">` +
+      `<div class="panel-row"><label>Minutes per tap</label>` +
+        `<div class="stepper"><button id="incMinus">−</button><span>${state.increment}</span><button id="incPlus">+</button></div>` +
+      `</div>` +
+      `<div class="panel-row"><label>${state.pin ? "🔒" : "🔓"} Control PIN</label>` +
+        `<input class="pin-input" id="pinSet" value="${state.pin}" placeholder="none" inputmode="numeric" /></div>` +
+      `<button class="reset-all" id="resetAll">↺ Reset all (minutes + No Freeplay)</button>` +
+      `<p class="note">The TV and this controller share one live database — anyone with the link sees updates instantly, no account needed. Set a PIN so students can't open the controller.<br><br>` +
+      `Bookmark the TV on this address with <b>#tv</b> at the end to open it straight in display mode.</p>` +
+    `</div>` : "";
+
+  const roster = list.length === 0
+    ? `<div class="empty">➕ Add your students above to get started.</div>`
+    : list.map(s =>
+      `<div class="card ${pulseId === s.id ? "pulse" : ""} ${s.noFree ? "nofree" : ""}">` +
+        `<div class="card-main">` +
+          `<button class="name-zone" data-add="${s.id}">` +
+            `<span class="name">${escapeHtml(s.name)}</span>` +
+            `<span class="mins ${s.minutes > 0 ? "has" : ""}">${fmt(s.minutes)}</span>` +
+          `</button>` +
+          `<button class="ctl plus" data-add="${s.id}">+</button>` +
+          `<button class="ctl minus" data-sub="${s.id}">−</button>` +
+          `<button class="ctl del" data-del="${s.id}" data-mins="${s.minutes}">${s.minutes > 0 ? "↺" : "🗑"}</button>` +
+        `</div>` +
+        `<button class="nofree-btn ${s.noFree ? "on" : ""}" data-nofree="${s.id}">` +
+          `${s.noFree ? "💣 No Freeplay ON — tap to undo" : "💣 No Freeplay"}` +
+        `</button>` +
+      `</div>`).join("");
+
+  appEl.innerHTML = `<div class="control"><div class="wrap">` +
+    `<div class="top">` +
+      `<div><h1>⏱️ Time-Out Tracker</h1>` +
+      `<p>Tap a name to add ${state.increment} min ${connected ? '<span class="status ok">● live</span>' : '<span class="status err">● offline</span>'}</p></div>` +
+      `<div class="btns"><button class="icon-btn" id="gear">⚙</button><button class="tv-btn" id="toTv">📺 TV</button></div>` +
+    `</div>${settings}` +
+    `<div class="add-row"><input id="newName" placeholder="Add a student name…" /><button class="add-btn" id="addBtn">＋</button></div>` +
+    `${roster}` +
+    `<p class="foot">The ↺/🗑 button resets a student to 0 min, or removes them if already at 0. The 💣 button toggles No Freeplay and blasts their name on the TV.</p>` +
+  `</div></div>`;
+
+  document.getElementById("gear").onclick = () => { showSettings = !showSettings; render(); };
+  document.getElementById("toTv").onclick = () => { mode = "display"; location.hash = "tv"; render(); };
+  const nameInput = document.getElementById("newName");
+  document.getElementById("addBtn").onclick = () => addStudent(nameInput.value);
+  nameInput.addEventListener("keydown", e => { if (e.key === "Enter") addStudent(nameInput.value); });
+
+  if (showSettings) {
+    document.getElementById("incMinus").onclick = () => setIncrement(state.increment - 1);
+    document.getElementById("incPlus").onclick = () => setIncrement(state.increment + 1);
+    document.getElementById("pinSet").addEventListener("change", e => setPin(e.target.value));
+    document.getElementById("resetAll").onclick = () => { if (confirm("Reset everyone's minutes and clear all No Freeplay?")) resetAll(); };
+  }
+
+  document.querySelectorAll("[data-add]").forEach(b =>
+    b.onclick = () => changeMinutes(b.getAttribute("data-add"), state.increment));
+  document.querySelectorAll("[data-sub]").forEach(b =>
+    b.onclick = () => changeMinutes(b.getAttribute("data-sub"), -state.increment));
+  document.querySelectorAll("[data-nofree]").forEach(b =>
+    b.onclick = () => toggleNoFree(b.getAttribute("data-nofree")));
+  document.querySelectorAll("[data-del]").forEach(b =>
+    b.onclick = () => {
+      const id = b.getAttribute("data-del");
+      const mins = Number(b.getAttribute("data-mins"));
+      if (mins > 0) resetStudent(id); else removeStudent(id);
+    });
+}
+
+window.addEventListener("hashchange", () => {
+  mode = location.hash === "#tv" ? "display" : "control";
+  if (mode === "control" && state.pin) unlocked = false;
+  render();
+});
+
+if (mode === "control" && state.pin) unlocked = false;
+render();
+</script>
+</body>
+</html>
