@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Hex Nut</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,800;0,9..144,900;1,9..144,400&family=DM+Sans:wght@500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --frame:#4a2e1f; --card:#f3ead8; --gold:#d4a24c; --ink:#2a1a12;
+    --band:#e8dcc2; --text-box:#fbf5ea; --atk:#a8441f; --def:#2e5a86; --dur:#3b6e43;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:#e9e4da;display:flex;justify-content:center;padding:24px 16px;font-family:"DM Sans",sans-serif}
+  .card{width:540px;max-width:100%;background:var(--frame);border-radius:30px;padding:14px}
+  .inner{background:var(--card);border:2px solid var(--gold);border-radius:20px;padding:26px 16px 16px}
+  .head{display:flex;justify-content:space-between;align-items:center;padding:0 0 0 2px}
+  h1{font-family:"Fraunces",serif;font-weight:900;font-size:36px;letter-spacing:-.5px;color:var(--ink);line-height:1}
+  .cost{width:58px;height:58px;border-radius:50%;background:var(--gold);border:3px solid var(--ink);display:grid;place-items:center;font-family:"Fraunces",serif;font-weight:900;font-size:28px;color:var(--ink)}
+  .type{margin-top:12px;display:flex;justify-content:space-between;align-items:center;background:var(--band);border:1.5px solid #6b5242;border-radius:8px;padding:6px 12px;font-weight:700;font-size:12.5px;letter-spacing:2.2px;color:var(--ink)}
+  .type small{font-size:10.5px;letter-spacing:1.4px;font-weight:700}
+  .art{margin-top:12px;border:3px solid var(--ink);border-radius:10px;overflow:hidden;line-height:0}
+  .art svg{width:100%;height:auto;display:block}
+  .rarity{margin:14px 0 0 2px;display:flex;align-items:center;gap:10px;font-weight:700;font-size:12.5px;letter-spacing:2px;color:#4a3a30}
+  .rarity i{width:10px;height:10px;background:#8d8d88;border:1.5px solid #4a4a45;transform:rotate(45deg);display:block}
+  .text{margin-top:10px;background:var(--text-box);border:1px solid #e3d5bb;border-radius:8px;min-height:116px;display:flex;align-items:center;padding:14px 16px}
+  .text p{font-family:"Fraunces",serif;font-style:italic;font-weight:400;font-size:16px;color:#3a2a20}
+  .stats{margin-top:12px;display:grid;grid-template-columns:repeat(3,1fr);gap:9px}
+  .stat{border-radius:8px;display:flex;justify-content:space-between;align-items:center;padding:6px 12px 6px 14px;color:#fff}
+  .stat span{font-weight:700;font-size:12px;letter-spacing:2px}
+  .stat b{font-family:"Fraunces",serif;font-weight:900;font-size:28px;line-height:1}
+  .atk{background:var(--atk)} .def{background:var(--def)} .dur{background:var(--dur)}
+</style>
+</head>
+<body>
+<div class="card"><div class="inner">
+  <div class="head"><h1>Hex Nut</h1><div class="cost">1</div></div>
+  <div class="type">HARDWARE — FASTENER <small>HDW · 001</small></div>
+
+  <div class="art">
+    <svg viewBox="0 0 460 350" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="A steel hex nut on a wooden workbench">
+      <defs>
+        <clipPath id="hole"><ellipse cx="230" cy="190" rx="48" ry="21.6"/></clipPath>
+      </defs>
+      <!-- wall -->
+      <rect width="460" height="350" fill="#c9d6de"/>
+      <circle cx="230" cy="185" r="140" fill="#d6e1e7"/>
+      <circle cx="230" cy="185" r="100" fill="#e1e9ee"/>
+      <!-- workbench floor -->
+      <rect y="262" width="460" height="88" fill="#a8744a"/>
+      <rect y="262" width="460" height="5" fill="#8c5a36"/>
+      <g stroke="#8c5a36" stroke-width="1.5" fill="none">
+        <line x1="0" y1="292" x2="460" y2="292"/>
+        <line x1="0" y1="322" x2="460" y2="322"/>
+        <line x1="92" y1="267" x2="92" y2="292"/>
+        <line x1="330" y1="292" x2="330" y2="322"/>
+        <line x1="185" y1="322" x2="185" y2="350"/>
+      </g>
+      <!-- shadow -->
+      <ellipse cx="238" cy="289" rx="148" ry="15" fill="#7c4f30" opacity=".75"/>
+
+      <!-- nut side faces -->
+      <polygon points="120,190 175,232.9 175,287.9 120,245" fill="#a9b4be"/>
+      <polygon points="175,232.9 285,232.9 285,287.9 175,287.9" fill="#8f9ba7"/>
+      <polygon points="285,232.9 340,190 340,245 285,287.9" fill="#707c88"/>
+      <!-- chamfer curves on side faces -->
+      <path d="M120,245 Q147,262 175,272" stroke="#c0c9d1" stroke-width="2" fill="none" opacity=".7"/>
+      <path d="M175,280 Q230,292 285,280" stroke="#a6b1bb" stroke-width="2" fill="none" opacity=".7"/>
+      <path d="M285,272 Q313,262 340,245" stroke="#85919c" stroke-width="2" fill="none" opacity=".7"/>
+      <!-- vertical highlight on front face -->
+      <rect x="190" y="236" width="10" height="48" fill="#a4afb9" opacity=".8"/>
+
+      <!-- top face -->
+      <polygon points="340,190 285,232.9 175,232.9 120,190 175,147.1 285,147.1" fill="#b3bec8"/>
+      <ellipse cx="230" cy="190" rx="94" ry="41.5" fill="#c6cfd7"/>
+      <!-- hole -->
+      <ellipse cx="230" cy="190" rx="52" ry="23.4" fill="#9aa6b1"/>
+      <ellipse cx="230" cy="190" rx="48" ry="21.6" fill="#3d4650"/>
+      <g clip-path="url(#hole)" fill="none" stroke="#5c6772" stroke-width="2.5">
+        <path d="M182,196 Q230,222 278,196"/>
+        <path d="M182,206 Q230,232 278,206"/>
+        <path d="M182,216 Q230,242 278,216"/>
+      </g>
+      <!-- sheen -->
+      <path d="M168,176 Q188,163 218,158" stroke="#e9eef2" stroke-width="5" stroke-linecap="round" fill="none"/>
+    </svg>
+  </div>
+
+  <div class="rarity"><i></i>COMMON</div>
+  <div class="text"><p>"Six sides, one hole, and it's still looking for the right bolt."</p></div>
+  <div class="stats">
+    <div class="stat atk"><span>ATK</span><b>1</b></div>
+    <div class="stat def"><span>DEF</span><b>3</b></div>
+    <div class="stat dur"><span>DUR</span><b>4</b></div>
+  </div>
+</div></div>
+</body>
+</html>
